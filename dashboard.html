@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Trading Bot Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1));
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #60a5fa;
+            margin: 0.5rem 0;
+        }
+        
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+        
+        .signal-buy {
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        
+        .signal-sell {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        
+        .signal-hold {
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        
+        .pnl-positive {
+            color: #22c55e;
+            font-weight: 600;
+        }
+        
+        .pnl-negative {
+            color: #ef4444;
+            font-weight: 600;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th {
+            background: rgba(51, 65, 85, 0.5);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #cbd5e1;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .table tr:hover {
+            background: rgba(148, 163, 184, 0.05);
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e, #10b981);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #94a3b8;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(148, 163, 184, 0.2);
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        
+        @keyframes spin {\n            0% { transform: rotate(0deg); }\n            100% { transform: rotate(360deg); }\n        }\n        \n        .alert {\n            padding: 1rem;\n            border-radius: 8px;\n            margin-bottom: 1rem;\n        }\n        \n        .alert-success {\n            background: rgba(34, 197, 94, 0.1);\n            border: 1px solid rgba(34, 197, 94, 0.3);\n            color: #22c55e;\n        }\n        \n        .alert-error {\n            background: rgba(239, 68, 68, 0.1);\n            border: 1px solid rgba(239, 68, 68, 0.3);\n            color: #ef4444;\n        }\n        \n        .modal {\n            display: none;\n            position: fixed;\n            z-index: 200;\n            left: 0;\n            top: 0;\n            width: 100%;\n            height: 100%;\n            background: rgba(0, 0, 0, 0.7);\n        }\n        \n        .modal.active {\n            display: flex;\n            align-items: center;\n            justify-content: center;\n        }\n        \n        .modal-content {\n            background: #1e293b;\n            border: 1px solid rgba(148, 163, 184, 0.2);\n            border-radius: 12px;\n            padding: 2rem;\n            max-width: 500px;\n            width: 90%;\n        }\n        \n        .form-group {\n            margin-bottom: 1.5rem;\n        }\n        \n        .form-group label {\n            display: block;\n            margin-bottom: 0.5rem;\n            color: #cbd5e1;\n            font-weight: 600;\n        }\n        \n        .form-group input {\n            width: 100%;\n            padding: 0.75rem;\n            background: rgba(51, 65, 85, 0.5);\n            border: 1px solid rgba(148, 163, 184, 0.2);\n            border-radius: 6px;\n            color: #e2e8f0;\n            font-size: 1rem;\n        }\n        \n        .form-group input:focus {\n            outline: none;\n            border-color: #3b82f6;\n            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);\n        }\n    </style>
+</head>
+<body>
+    <!-- Navigation -->\n    <div class=\"navbar\">\n        <div class=\"container\" style=\"display: flex; justify-content: space-between; align-items: center;\">\n            <div>\n                <h1 style=\"font-size: 1.875rem; font-weight: bold; background: linear-gradient(135deg, #3b82f6, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;\">🤖 AI Trading Bot</h1>\n                <p style=\"color: #94a3b8; font-size: 0.875rem; margin-top: 0.25rem;\">Automated Trading Dashboard</p>\n            </div>\n            <div style=\"display: flex; gap: 1rem;\">\n                <button class=\"btn btn-primary\" onclick=\"refreshData()\">🔄 Refresh</button>\n                <button class=\"btn btn-success\" onclick=\"openPaperTradeModal()\">📊 Paper Trade</button>\n            </div>\n        </div>\n    </div>\n\n    <!-- Main Container -->\n    <div class=\"container\">\n        <!-- Alert Messages -->\n        <div id=\"alertContainer\"></div>\n\n        <!-- Statistics Cards -->\n        <div class=\"card\">\n            <h2 style=\"font-size: 1.5rem; margin-bottom: 1.5rem; color: #e2e8f0;\">📈 Trading Statistics</h2>\n            <div class=\"grid\">\n                <div class=\"stat-card\">\n                    <div class=\"stat-label\">Total Capital</div>\n                    <div class=\"stat-value\">$<span id=\"totalCapital\">1000</span></div>\n                </div>\n                <div class=\"stat-card\">\n                    <div class=\"stat-label\">Available Capital</div>\n                    <div class=\"stat-value\">$<span id=\"availableCapital\">1000</span></div>\n                </div>\n                <div class=\"stat-card\">\n                    <div class=\"stat-label\">Total Trades</div>\n                    <div class=\"stat-value\"><span id=\"totalTrades\">0</span></div>\n                </div>\n                <div class=\"stat-card\">\n                    <div class=\"stat-label\">Win Rate</div>\n                    <div class=\"stat-value\"><span id=\"winRate\">0</span>%</div>\n                </div>\n                <div class=\"stat-card\">\n                    <div class=\"stat-label\">Total P&L</div>\n                    <div class=\"stat-value\" id=\"totalPnl\">$0.00</div>\n                </div>\n                <div class=\"stat-card\">\n                    <div class=\"stat-label\">Return %</div>\n                    <div class=\"stat-value\" id=\"returnPercent\">0%</div>\n                </div>\n            </div>\n        </div>\n\n        <!-- Trading Signal -->\n        <div class=\"card\">\n            <h2 style=\"font-size: 1.5rem; margin-bottom: 1.5rem; color: #e2e8f0;\">🎯 Current Signal</h2>\n            <div style=\"display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;\">\n                <div>\n                    <p style=\"color: #94a3b8; margin-bottom: 0.5rem;\">Symbol</p>\n                    <p style=\"font-size: 1.25rem; font-weight: 600;\" id=\"signalSymbol\">BTCUSDT</p>\n                </div>\n                <div>\n                    <p style=\"color: #94a3b8; margin-bottom: 0.5rem;\">Signal</p>\n                    <p id=\"signalValue\" class=\"signal-hold\">HOLD</p>\n                </div>\n                <div>\n                    <p style=\"color: #94a3b8; margin-bottom: 0.5rem;\">Confidence</p>\n                    <p style=\"font-size: 1.25rem; font-weight: 600;\" id=\"signalConfidence\">0%</p>\n                </div>\n                <div>\n                    <p style=\"color: #94a3b8; margin-bottom: 0.5rem;\">Price</p>\n                    <p style=\"font-size: 1.25rem; font-weight: 600;\" id=\"signalPrice\">$0</p>\n                </div>\n            </div>\n        </div>\n\n        <!-- Key Indicators -->\n        <div class=\"card\">\n            <h2 style=\"font-size: 1.5rem; margin-bottom: 1.5rem; color: #e2e8f0;\">📊 Technical Indicators</h2>\n            <div style=\"display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;\">\n                <div class=\"stat-card\">\n                    <div class=\"stat-label\">RSI (14)</div>\n                    <div class=\"stat-value\"><span id=\"rsi\">0</span></div>\n                </div>\n                <div class=\"stat-card\">\n                    <div class=\"stat-label\">EMA Fast</div>\n                    <div class=\"stat-value\">$<span id=\"emaFast\">0</span></div>\n                </div>\n                <div class=\"stat-card\">\n                    <div class=\"stat-label\">EMA Slow</div>\n                    <div class=\"stat-value\">$<span id=\"emaSlow\">0</span></div>\n                </div>\n                <div class=\"stat-card\">\n                    <div class=\"stat-label\">MACD</div>\n                    <div class=\"stat-value\"><span id=\"macd\">0</span></div>\n                </div>\n                <div class=\"stat-card\">\n                    <div class=\"stat-label\">ATR</div>\n                    <div class=\"stat-value\"><span id=\"atr\">0</span></div>\n                </div>\n            </div>\n        </div>\n\n        <!-- Open Positions -->\n        <div class=\"card\">\n            <h2 style=\"font-size: 1.5rem; margin-bottom: 1.5rem; color: #e2e8f0;\">📍 Open Positions</h2>\n            <div style=\"overflow-x: auto;\">\n                <table class=\"table\">\n                    <thead>\n                        <tr>\n                            <th>Symbol</th>\n                            <th>Side</th>\n                            <th>Entry Price</th>\n                            <th>Quantity</th>\n                            <th>Stop Loss</th>\n                            <th>Take Profit</th>\n                            <th>Action</th>\n                        </tr>\n                    </thead>\n                    <tbody id=\"openPositionsTable\">\n                        <tr>\n                            <td colspan=\"7\" style=\"text-align: center; color: #94a3b8;\">No open positions</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n        </div>\n\n        <!-- Trade History -->\n        <div class=\"card\">\n            <h2 style=\"font-size: 1.5rem; margin-bottom: 1.5rem; color: #e2e8f0;\">📈 Trade History</h2>\n            <div style=\"overflow-x: auto;\">\n                <table class=\"table\">\n                    <thead>\n                        <tr>\n                            <th>Symbol</th>\n                            <th>Side</th>\n                            <th>Entry</th>\n                            <th>Exit</th>\n                            <th>P&L</th>\n                            <th>Return %</th>\n                            <th>Status</th>\n                        </tr>\n                    </thead>\n                    <tbody id=\"tradeHistoryTable\">\n                        <tr>\n                            <td colspan=\"7\" style=\"text-align: center; color: #94a3b8;\">No trades yet</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n        </div>\n    </div>\n\n    <!-- Paper Trade Modal -->\n    <div id=\"paperTradeModal\" class=\"modal\">\n        <div class=\"modal-content\">\n            <h2 style=\"font-size: 1.5rem; margin-bottom: 1.5rem;\">📊 Open Paper Trade</h2>\n            \n            <div class=\"form-group\">\n                <label>Symbol</label>\n                <input type=\"text\" id=\"tradeSymbol\" value=\"BTCUSDT\" placeholder=\"e.g., BTCUSDT\">\n            </div>\n            \n            <div class=\"form-group\">\n                <label>Entry Price</label>\n                <input type=\"number\" id=\"tradeEntry\" placeholder=\"50000\" step=\"0.01\">\n            </div>\n            \n            <div class=\"form-group\">\n                <label>Quantity</label>\n                <input type=\"number\" id=\"tradeQuantity\" placeholder=\"0.01\" step=\"0.0001\">\n            </div>\n            \n            <div class=\"form-group\">\n                <label>Stop Loss</label>\n                <input type=\"number\" id=\"tradeSL\" placeholder=\"49000\" step=\"0.01\">\n            </div>\n            \n            <div class=\"form-group\">\n                <label>Take Profit</label>\n                <input type=\"number\" id=\"tradeTP\" placeholder=\"51000\" step=\"0.01\">\n            </div>\n            \n            <div style=\"display: flex; gap: 1rem;\">\n                <button class=\"btn btn-success\" style=\"flex: 1;\" onclick=\"openPaperTrade()\">Open Trade</button>\n                <button class=\"btn btn-danger\" style=\"flex: 1; background: #64748b;\" onclick=\"closePaperTradeModal()\">Cancel</button>\n            </div>\n        </div>\n    </div>\n\n    <script>\n        const API_BASE = 'http://localhost:8000';\n        let refreshInterval;\n\n        // Show alert\n        function showAlert(message, type = 'success') {\n            const alertContainer = document.getElementById('alertContainer');\n            const alert = document.createElement('div');\n            alert.className = `alert alert-${type}`;\n            alert.textContent = message;\n            alertContainer.appendChild(alert);\n            \n            setTimeout(() => alert.remove(), 5000);\n        }\n\n        // Fetch and update statistics\n        async function updateStatistics() {\n            try {\n                const response = await fetch(`${API_BASE}/api/paper-trading/statistics`);\n                const data = await response.json();\n                \n                document.getElementById('totalCapital').textContent = data.capital.toFixed(2);\n                document.getElementById('availableCapital').textContent = data.available_capital.toFixed(2);\n                document.getElementById('totalTrades').textContent = data.total_trades;\n                document.getElementById('winRate').textContent = data.win_rate_percent.toFixed(1);\n                \n                const totalPnlEl = document.getElementById('totalPnl');\n                totalPnlEl.textContent = `$${data.total_pnl.toFixed(2)}`;\n                totalPnlEl.className = data.total_pnl >= 0 ? 'pnl-positive' : 'pnl-negative';\n                \n                const returnEl = document.getElementById('returnPercent');\n                returnEl.textContent = `${data.return_percent.toFixed(2)}%`;\n                returnEl.className = data.return_percent >= 0 ? 'pnl-positive' : 'pnl-negative';\n            } catch (error) {\n                console.error('Error fetching statistics:', error);\n            }\n        }\n\n        // Fetch and update signals\n        async function updateSignals() {\n            try {\n                const response = await fetch(`${API_BASE}/api/signal/BTCUSDT?interval=5m`);\n                const data = await response.json();\n                \n                document.getElementById('signalSymbol').textContent = data.symbol;\n                document.getElementById('signalPrice').textContent = `$${data.price.toFixed(2)}`;\n                document.getElementById('signalConfidence').textContent = `${(data.confidence * 100).toFixed(0)}%`;\n                \n                const signalEl = document.getElementById('signalValue');\n                signalEl.textContent = data.signal;\n                signalEl.className = `signal-${data.signal.toLowerCase()}`;\n                \n                if (data.indicators) {\n                    document.getElementById('rsi').textContent = data.indicators.rsi?.toFixed(1) || '0';\n                    document.getElementById('emaFast').textContent = data.indicators.ema_fast?.toFixed(2) || '0';\n                    document.getElementById('emaSlow').textContent = data.indicators.ema_slow?.toFixed(2) || '0';\n                    document.getElementById('macd').textContent = data.indicators.macd?.toFixed(2) || '0';\n                    document.getElementById('atr').textContent = data.indicators.atr?.toFixed(2) || '0';\n                }\n            } catch (error) {\n                console.error('Error fetching signals:', error);\n            }\n        }\n\n        // Fetch and update open positions\n        async function updateOpenPositions() {\n            try {\n                const response = await fetch(`${API_BASE}/api/paper-trading/positions`);\n                const data = await response.json();\n                \n                const table = document.getElementById('openPositionsTable');\n                \n                if (data.open_positions.length === 0) {\n                    table.innerHTML = '<tr><td colspan=\"7\" style=\"text-align: center; color: #94a3b8;\">No open positions</td></tr>';\n                    return;\n                }\n                \n                table.innerHTML = data.open_positions.map((pos, idx) => `\n                    <tr>\n                        <td>${pos.symbol}</td>\n                        <td><span style=\"color: ${pos.side === 'BUY' ? '#22c55e' : '#ef4444'};\">${pos.side}</span></td>\n                        <td>$${pos.entry_price.toFixed(2)}</td>\n                        <td>${pos.quantity}</td>\n                        <td>$${pos.stop_loss.toFixed(2)}</td>\n                        <td>$${pos.take_profit.toFixed(2)}</td>\n                        <td><button class=\"btn btn-danger\" onclick=\"closeTrade(${idx})\" style=\"padding: 0.5rem 1rem; font-size: 0.875rem;\">Close</button></td>\n                    </tr>\n                `).join('');\n            } catch (error) {\n                console.error('Error fetching positions:', error);\n            }\n        }\n\n        // Fetch and update trade history\n        async function updateTradeHistory() {\n            try {\n                const response = await fetch(`${API_BASE}/api/paper-trading/history?limit=10`);\n                const data = await response.json();\n                \n                const table = document.getElementById('tradeHistoryTable');\n                \n                if (data.trades.length === 0) {\n                    table.innerHTML = '<tr><td colspan=\"7\" style=\"text-align: center; color: #94a3b8;\">No trades yet</td></tr>';\n                    return;\n                }\n                \n                table.innerHTML = data.trades.map(trade => `\n                    <tr>\n                        <td>${trade.symbol}</td>\n                        <td><span style=\"color: ${trade.side === 'BUY' ? '#22c55e' : '#ef4444'};\">${trade.side}</span></td>\n                        <td>$${trade.entry_price.toFixed(2)}</td>\n                        <td>$${trade.exit_price?.toFixed(2) || '-'}</td>\n                        <td class=\"${trade.pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}\">$${trade.pnl?.toFixed(2) || '-'}</td>\n                        <td class=\"${trade.pnl_percent >= 0 ? 'pnl-positive' : 'pnl-negative'}\">${trade.pnl_percent?.toFixed(2) || '-'}%</td>\n                        <td><span style=\"color: ${trade.status === 'CLOSED' ? '#22c55e' : '#f59e0b'};\">${trade.status}</span></td>\n                    </tr>\n                `).join('');\n            } catch (error) {\n                console.error('Error fetching trade history:', error);\n            }\n        }\n\n        // Refresh all data\n        async function refreshData() {\n            await updateStatistics();\n            await updateSignals();\n            await updateOpenPositions();\n            await updateTradeHistory();\n        }\n\n        // Modal functions\n        function openPaperTradeModal() {\n            document.getElementById('paperTradeModal').classList.add('active');\n        }\n\n        function closePaperTradeModal() {\n            document.getElementById('paperTradeModal').classList.remove('active');\n        }\n\n        // Open paper trade\n        async function openPaperTrade() {\n            const symbol = document.getElementById('tradeSymbol').value;\n            const entry = parseFloat(document.getElementById('tradeEntry').value);\n            const quantity = parseFloat(document.getElementById('tradeQuantity').value);\n            const sl = parseFloat(document.getElementById('tradeSL').value);\n            const tp = parseFloat(document.getElementById('tradeTP').value);\n            \n            try {\n                const response = await fetch(`${API_BASE}/api/paper-trading/open-position`, {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({\n                        symbol, entry_price: entry, quantity, stop_loss: sl, take_profit: tp\n                    })\n                });\n                \n                if (response.ok) {\n                    showAlert(`✅ Trade opened: ${symbol}`, 'success');\n                    closePaperTradeModal();\n                    refreshData();\n                } else {\n                    showAlert('❌ Failed to open trade', 'error');\n                }\n            } catch (error) {\n                showAlert(`❌ Error: ${error.message}`, 'error');\n            }\n        }\n\n        // Close trade\n        async function closeTrade(index) {\n            const exitPrice = prompt('Enter exit price:');\n            if (!exitPrice) return;\n            \n            try {\n                const response = await fetch(`${API_BASE}/api/paper-trading/close-position/${index}`, {\n                    method: 'POST',\n                    headers: {'Content-Type': 'application/json'},\n                    body: JSON.stringify({ exit_price: parseFloat(exitPrice) })\n                });\n                \n                if (response.ok) {\n                    showAlert('✅ Trade closed', 'success');\n                    refreshData();\n                } else {\n                    showAlert('❌ Failed to close trade', 'error');\n                }\n            } catch (error) {\n                showAlert(`❌ Error: ${error.message}`, 'error');\n            }\n        }\n\n        // Initialize\n        refreshData();\n        refreshInterval = setInterval(refreshData, 30000); // Refresh every 30 seconds\n\n        // Close modal on outside click\n        document.getElementById('paperTradeModal').addEventListener('click', (e) => {\n            if (e.target.id === 'paperTradeModal') closePaperTradeModal();\n        });\n    </script>\n</body>
+</html>
